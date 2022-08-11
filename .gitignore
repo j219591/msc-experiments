@@ -1,0 +1,18 @@
+# Mac OSX Desktop stuff
+*.DS_Store
+
+# emacs backup
+*~
+
+# etags file for emacs or vi
+TAGS
+
+*.log
+
+#ignore VIM .swp files
+*.swp
+
+# CMake
+CMakeCache.txt
+cmake_install.cmake
+Makefile
