@@ -1,5 +1,5 @@
 #include <iostream>
-#include "GPTGraph.hpp"
+#include "Graph.hpp"
 #include "dijkstra.cpp"
 
 using namespace std;
