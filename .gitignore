@@ -13,6 +13,7 @@ TAGS
 *.swp
 
 # CMake
+CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
