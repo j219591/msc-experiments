@@ -1,9 +1,10 @@
 #include <iostream>
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/xfeatures2d.hpp>
+#include "livewire.hpp"
 
 using namespace std;
 using namespace cv;
@@ -29,7 +30,7 @@ int main(int argc, char** argv) {
         cvtColor(tmp, nextFrame, COLOR_BGR2GRAY);
 
         Ptr<SURF> detector = SURF::create();
-        detector->setHessianThreshold(2000);
+        detector->setHessianThreshold(4000);
 
         std::vector<KeyPoint> keypoint_1, keypoint_2;
         Mat descriptors_1, descriptors_2;
@@ -48,14 +49,33 @@ int main(int argc, char** argv) {
             waitKey(-1);
         } 
 
-        
         if (keyboard == '.')
             pausedFrame = true;
 
         Mat matchesFrame;
         drawMatches(previousFrame, keypoint_1, nextFrame, keypoint_2, matches, matchesFrame);
 
-        imshow("SURF", matchesFrame);        
+        imshow("SURF", matchesFrame);    
+
+        vector<Pixel> seeds;
+        //seeds.push_back(Pixel{300,100});
+        for (auto match : matches) {
+            auto point = keypoint_1[match.trainIdx].pt;
+            seeds.push_back(Pixel((uint32_t)point.y, (uint32_t)point.x));
+        }
+
+        if (!seeds.empty()) {
+            auto paths = livewire(nextFrame, seeds);
+            //cout << "Path: " << endl;
+            for (const auto &path : paths) {
+                for (const auto p : path) {
+                    //cout << p.x << ", " << p.y << endl;
+                    circle(nextFrame, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
+                }
+            }
+        }
+
+        imshow("Image", nextFrame);
 
         previousFrame = nextFrame;
         if (pausedFrame) {
