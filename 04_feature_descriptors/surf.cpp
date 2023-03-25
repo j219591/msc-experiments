@@ -24,6 +24,13 @@ int main(int argc, char** argv) {
     cvtColor(_tmp, previousFrame, COLOR_BGR2GRAY);
 
     bool pausedFrame = false;
+
+    cv::VideoWriter writer("output_video.mp4", cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 5, _tmp.size(), true);
+    if (!writer.isOpened()) {
+        std::cerr << "Error: Failed to open output video file\n";
+        return -1;
+    }
+
     while (true) {
         Mat tmp, nextFrame;
         capture >> tmp;
@@ -77,6 +84,7 @@ int main(int argc, char** argv) {
         }
 
         imshow("Image", nextFrame);
+        writer.write(nextFrame);
 
         previousFrame = nextFrame;
         if (pausedFrame) {
@@ -87,5 +95,6 @@ int main(int argc, char** argv) {
 
     waitKey(0);
     capture.release();
+    writer.release();
     destroyAllWindows();
 }
