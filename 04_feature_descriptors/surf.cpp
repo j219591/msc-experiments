@@ -38,10 +38,6 @@ int main(int argc, char** argv) {
         detector->detectAndCompute(previousFrame, Mat(), keypoint_1, descriptors_1);
         detector->detectAndCompute(nextFrame, Mat(), keypoint_2, descriptors_2);
 
-        BFMatcher matcher(NORM_L2);
-        vector<DMatch> matches;
-        matcher.match(descriptors_1, descriptors_2, matches);
-
         auto keyboard = waitKey(30);
         if (keyboard == 'q' || keyboard == 27)
             break;
@@ -52,25 +48,30 @@ int main(int argc, char** argv) {
         if (keyboard == '.')
             pausedFrame = true;
 
-        Mat matchesFrame;
-        drawMatches(previousFrame, keypoint_1, nextFrame, keypoint_2, matches, matchesFrame);
+        if (!keypoint_1.empty() && !keypoint_2.empty()) {
+            BFMatcher matcher(NORM_L2);
+            vector<DMatch> matches;
+            matcher.match(descriptors_1, descriptors_2, matches);
+            
+            Mat matchesFrame;
+            drawMatches(previousFrame, keypoint_1, nextFrame, keypoint_2, matches, matchesFrame);
 
-        imshow("SURF", matchesFrame);    
+            imshow("SURF", matchesFrame);    
 
-        vector<Pixel> seeds;
-        //seeds.push_back(Pixel{300,100});
-        for (auto match : matches) {
-            auto point = keypoint_1[match.trainIdx].pt;
-            seeds.push_back(Pixel((uint32_t)point.y, (uint32_t)point.x));
-        }
+            vector<Pixel> seeds;
+            for (auto match : matches) {
+                auto point = keypoint_1[match.trainIdx].pt;
+                seeds.push_back(Pixel((uint32_t)point.y, (uint32_t)point.x));
+            }
 
-        if (!seeds.empty()) {
-            auto paths = livewire(nextFrame, seeds);
-            //cout << "Path: " << endl;
-            for (const auto &path : paths) {
-                for (const auto p : path) {
-                    //cout << p.x << ", " << p.y << endl;
-                    circle(nextFrame, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
+            if (!seeds.empty()) {
+                auto paths = livewire(nextFrame, seeds);
+                //cout << "Path: " << endl;
+                for (const auto &path : paths) {
+                    for (const auto p : path) {
+                        //cout << p.x << ", " << p.y << endl;
+                        circle(nextFrame, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
+                    }
                 }
             }
         }

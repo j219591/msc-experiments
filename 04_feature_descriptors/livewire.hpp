@@ -23,8 +23,8 @@ struct PixelNode {
 
 vector<vector<Pixel>> livewire(Mat &img, const vector<Pixel> &seeds) {
 	int n = img.rows, m = img.cols;
-	int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
-	int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+	const int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+	const int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
 	Mat gx, gy;
 	Sobel(img, gx, CV_64F, 1, 0);
@@ -32,11 +32,9 @@ vector<vector<Pixel>> livewire(Mat &img, const vector<Pixel> &seeds) {
 
 	vector<vector<Pixel>> paths;
 
+	vector<vector<bool>> vis(n, vector<bool>(m, false));
+	vector<vector<double>> dist(n, vector<double>(m, numeric_limits<double>::infinity()));
 	for (auto &start : seeds) {
-
-		vector<vector<double>> dist(n, vector<double>(m, numeric_limits<double>::infinity()));
-		vector<vector<bool>> vis(n, vector<bool>(m, false));
-
 		dist[start.x][start.y] = 0;
 
 		priority_queue<PixelNode> pq;
