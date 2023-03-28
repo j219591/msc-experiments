@@ -6,6 +6,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/xfeatures2d.hpp>
+#include <omp.h>
 #include "livewire.hpp"
 //#include "detectors/SURF.hpp"
 
@@ -99,7 +100,9 @@ int main(int argc, char** argv) {
                 //     }
                 // );
 
+                #pragma omp parallel for
                 for (const auto &path : paths) {
+                    #pragma omp parallel for
                     for (const auto p : path) {
                         circle(nextFrameColored, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
                     }
