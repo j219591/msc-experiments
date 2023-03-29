@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
         std::vector<KeyPoint> keypoint_1, keypoint_2;
         Mat descriptors_1, descriptors_2;
 
-        detector->detectAndCompute(previousFrame, cv::noArray(), keypoint_1, descriptors_1);
+        //detector->detectAndCompute(previousFrame, cv::noArray(), keypoint_1, descriptors_1);
         detector->detectAndCompute(nextFrame, cv::noArray(), keypoint_2, descriptors_2);
 
         auto keyboard = waitKey(30);
@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
             pausedFrame = true;
 
         //BFMatcher matcher(NORM_L2);
-        auto matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-        if (!keypoint_1.empty() && !keypoint_2.empty()) {
+        //auto matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+        if (!keypoint_2.empty()) {
             //vector<DMatch> matches;
            // matcher->match(descriptors_1, descriptors_2, matches);
             
