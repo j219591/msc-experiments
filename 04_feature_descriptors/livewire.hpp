@@ -22,9 +22,9 @@ struct PixelNode {
 };
 
 vector<vector<Pixel>> livewire(Mat &img, const vector<Pixel> &seeds) {
-	int n = img.rows, m = img.cols;
-	const int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
-	const int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+	const int n = img.rows, m = img.cols;
+	constexpr int dx[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+	constexpr int dy[] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
 	Mat gx, gy;
 	Sobel(img, gx, CV_64F, 1, 0);
@@ -48,11 +48,12 @@ vector<vector<Pixel>> livewire(Mat &img, const vector<Pixel> &seeds) {
 				int nx = u.x + dx[i];
 				int ny = u.y + dy[i];
 				if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
-				double w = sqrt(gx.at<double>(u.x, u.y) * gx.at<double>(nx, ny) + gy.at<double>(u.x, u.y) * gy.at<double>(nx, ny));
-				double alt = dist[u.x][u.y] + 1/w;
+				double w = 1/sqrt(gx.at<double>(u.x, u.y) * gx.at<double>(nx, ny) + gy.at<double>(u.x, u.y) * gy.at<double>(nx, ny));
+				//double w = 1/mag.at<double>(u.x, u.y);
+				double alt = dist[u.x][u.y] + w;
 				if (alt < dist[nx][ny]) {
 					//cout << "adding " << nx << ", " << ny << endl;
-					dist[nx][ny] = 1/w;
+					dist[nx][ny] = w;
 					pq.push(PixelNode(nx, ny, alt));
 				}
 			}
@@ -64,7 +65,7 @@ vector<vector<Pixel>> livewire(Mat &img, const vector<Pixel> &seeds) {
 		vector<vector<bool>> vis_path(n, vector<bool>(m, false));
 		while (true) {
 			Pixel last = path.back();
-			if (last.x < 0 || last.x > n-1 || last.y < 0 || last.y > m-1) break;
+			if (last.x < 0 || last.x >= n || last.y < 0 || last.y >= m) break;
 			double min_dist = numeric_limits<double>::infinity();
 			int nx = -1, ny = -1;
 			for (int i = 0; i < 8; ++i) {
