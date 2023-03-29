@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
     auto detector = SIFT::create();
     //detector->setHessianThreshold(4000);
     while (true) {
+        auto t0g = clock();
         Mat tmp, nextFrameColored, nextFrame;
         capture >> tmp;
         nextFrameColored = tmp.clone();
@@ -56,8 +57,10 @@ int main(int argc, char** argv) {
         std::vector<KeyPoint> keypoint_1, keypoint_2;
         Mat descriptors_1, descriptors_2;
 
+        auto t0d = clock();
         //detector->detectAndCompute(previousFrame, cv::noArray(), keypoint_1, descriptors_1);
         detector->detectAndCompute(nextFrame, cv::noArray(), keypoint_2, descriptors_2);
+        cout << "detect: " << (clock() - t0d)/(double)CLOCKS_PER_SEC << endl;
 
         auto keyboard = waitKey(30);
         if (keyboard == 'q' || keyboard == 27)
@@ -90,7 +93,9 @@ int main(int argc, char** argv) {
             }
 
             if (!seeds.empty()) {
+                auto t0 = clock();
                 auto paths = livewire(nextFrame, seeds);
+                cout << "livewire: " << (clock() - t0)/(double)CLOCKS_PER_SEC << endl;
                 // for_each (
                 //     execution::par,
                 //     paths.begin(),
@@ -104,6 +109,7 @@ int main(int argc, char** argv) {
                 //     }
                 // );
 
+                auto t0c = clock();
                 #pragma omp parallel for
                 for (const auto &path : paths) {
                     if (path.size() > pathThreshold) {
@@ -113,6 +119,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 }
+                cout << "draw path: " << (clock() - t0c)/(double) CLOCKS_PER_SEC << endl;
             }
         }
 
@@ -124,6 +131,7 @@ int main(int argc, char** argv) {
             keyboard = waitKey(-1);
             pausedFrame = (keyboard == '.');
         }
+        cout << "iteration: " << (clock() - t0g)/(double) CLOCKS_PER_SEC << endl;
     }
 
     waitKey(0);
