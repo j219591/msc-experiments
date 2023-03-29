@@ -33,6 +33,10 @@ int main(int argc, char** argv) {
     capture >> _tmp;
     cvtColor(_tmp, previousFrame, COLOR_BGR2GRAY);
 
+    auto [width, height] = _tmp.size();
+    const int pathThreshold = (width > height) ? .3 * width : .35*height;
+    cout << "Path threshold: " << pathThreshold << endl;
+
     bool pausedFrame = false;
 
     cv::VideoWriter writer("output_video.mp4", cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 24, _tmp.size(), true);
@@ -102,10 +106,12 @@ int main(int argc, char** argv) {
 
                 #pragma omp parallel for
                 for (const auto &path : paths) {
+                    if (path.size() > pathThreshold) {
                     #pragma omp parallel for
                     for (const auto p : path) {
                         circle(nextFrameColored, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
                     }
+                }
                 }
             }
         }
