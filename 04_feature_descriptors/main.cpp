@@ -51,6 +51,7 @@ int main(int argc, char** argv) {
         auto t0g = clock();
         Mat tmp, nextFrameColored, nextFrame;
         capture >> tmp;
+        if (tmp.empty()) break;
         nextFrameColored = tmp.clone();
         cvtColor(tmp, nextFrame, COLOR_BGR2GRAY);
 
@@ -134,7 +135,6 @@ int main(int argc, char** argv) {
         cout << "iteration: " << (clock() - t0g)/(double) CLOCKS_PER_SEC << endl;
     }
 
-    waitKey(0);
     writer.release();
     capture.release();
     destroyAllWindows();
