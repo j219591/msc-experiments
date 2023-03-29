@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
     cvtColor(_tmp, previousFrame, COLOR_BGR2GRAY);
 
     auto [width, height] = _tmp.size();
+
     const int pathThreshold = (width > height) ? .3 * width : .35*height;
     cout << "Path threshold: " << pathThreshold << endl;
 
@@ -56,7 +57,7 @@ int main(int argc, char** argv) {
     }
 
     auto detector = SIFT::create();
-    //detector->setHessianThreshold(4000);
+    //detector->setHessianThreshold(200);
     while (true) {
         auto t0g = clock();
         Mat tmp, nextFrameColored, nextFrame;
@@ -125,12 +126,12 @@ int main(int argc, char** argv) {
                 #pragma omp parallel for
                 for (const auto &path : paths) {
                     if (path.size() > pathThreshold) {
-                    #pragma omp parallel for
                         auto color = colors[i++ % colors.size()];
-                    for (const auto p : path) {
+						#pragma omp parallel for
+                        for (const auto p : path) {
                             nextFrameColored.at<Vec3b>(Point(p.y, p.x)) = color;
+                        }
                     }
-                }
                 }
                 cout << "draw path: " << (clock() - t0c)/(double) CLOCKS_PER_SEC << endl;
             }
@@ -144,6 +145,7 @@ int main(int argc, char** argv) {
             keyboard = waitKey(-1);
             pausedFrame = (keyboard == '.');
         }
+
         cout << "iteration: " << (clock() - t0g)/(double) CLOCKS_PER_SEC << endl;
     }
 
