@@ -15,6 +15,15 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
+const vector<Vec3b> colors = {
+    Vec3b(0, 255, 255),
+    Vec3b(255, 255, 0),
+    Vec3b(255, 0, 255), 
+    Vec3b(0, 0, 255),
+    Vec3b(0, 255, 0),
+    Vec3b(255, 0, 0)
+};
+
 int main(int argc, char** argv) {
     cuda::DeviceInfo info;
     cout << "Device name: " << info.name() << endl;
@@ -112,12 +121,14 @@ int main(int argc, char** argv) {
                 // );
 
                 auto t0c = clock();
+                int i = 0;
                 #pragma omp parallel for
                 for (const auto &path : paths) {
                     if (path.size() > pathThreshold) {
                     #pragma omp parallel for
+                        auto color = colors[i++ % colors.size()];
                     for (const auto p : path) {
-                        circle(nextFrameColored, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
+                            nextFrameColored.at<Vec3b>(Point(p.y, p.x)) = color;
                     }
                 }
                 }
