@@ -9,147 +9,147 @@
 #include <opencv2/xfeatures2d.hpp>
 #include <omp.h>
 #include "livewire.hpp"
-//#include "detectors/SURF.hpp"
+// #include "detectors/SURF.hpp"
 
 using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
 const vector<Vec3b> colors = {
-    Vec3b(0, 255, 255),
-    Vec3b(255, 255, 0),
-    Vec3b(255, 0, 255), 
-    Vec3b(0, 0, 255),
-    Vec3b(0, 255, 0),
-    Vec3b(255, 0, 0)
+	Vec3b(0, 255, 255),
+	Vec3b(255, 255, 0),
+	Vec3b(255, 0, 255),
+	Vec3b(0, 0, 255),
+	Vec3b(0, 255, 0),
+	Vec3b(255, 0, 0)
 };
 
-int main(int argc, char** argv) {
-    cuda::DeviceInfo info;
-    cout << "Device name: " << info.name() << endl;
-    cout << "Compute capability: " << info.majorVersion() << "." << info.minorVersion() << endl;
+int main(int argc, char **argv) {
+	cuda::DeviceInfo info;
+	cout << "Device name: " << info.name() << endl;
+	cout << "Compute capability: " << info.majorVersion() << "." << info.minorVersion() << endl;
 
-    VideoCapture capture;
-    if (argv[1] != "camera")
-        capture = VideoCapture(samples::findFile(argv[1]));
-    else
-        capture = VideoCapture(0);
+	VideoCapture capture;
+	if (argv[1] != "camera")
+		capture = VideoCapture(samples::findFile(argv[1]));
+	else
+		capture = VideoCapture(0);
 
-    if (!capture.isOpened()) {
-        cerr << "Unable to open video file" << endl;
-    }
+	if (!capture.isOpened()) {
+		cerr << "Unable to open video file" << endl;
+	}
 
-    Mat _tmp, previousFrame;
-    capture >> _tmp;
-    cvtColor(_tmp, previousFrame, COLOR_BGR2GRAY);
+	Mat _tmp, previousFrame;
+	capture >> _tmp;
+	cvtColor(_tmp, previousFrame, COLOR_BGR2GRAY);
 
-    auto [width, height] = _tmp.size();
+	auto [width, height] = _tmp.size();
 
-    const int pathThreshold = (width > height) ? .3 * width : .35*height;
-    cout << "Path threshold: " << pathThreshold << endl;
+	const int pathThreshold = (width > height) ? .3 * width : .35 * height;
+	cout << "Path threshold: " << pathThreshold << endl;
 
-    bool pausedFrame = false;
+	bool pausedFrame = false;
 
-    cv::VideoWriter writer("output_video.mp4", cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 24, _tmp.size(), true);
-    if (!writer.isOpened()) {
-        std::cerr << "Error: Failed to open output video file\n";
-        return -1;
-    }
+	cv::VideoWriter writer("output_video.mp4", cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 24, _tmp.size(), true);
+	if (!writer.isOpened()) {
+		std::cerr << "Error: Failed to open output video file\n";
+		return -1;
+	}
 
-    auto detector = SIFT::create();
-    //detector->setHessianThreshold(200);
-    while (true) {
-        auto t0g = clock();
-        Mat tmp, nextFrameColored, nextFrame;
-        capture >> tmp;
-        if (tmp.empty()) break;
-        nextFrameColored = tmp.clone();
-        cvtColor(tmp, nextFrame, COLOR_BGR2GRAY);
+	auto detector = SIFT::create();
+	// detector->setHessianThreshold(200);
+	while (true) {
+		auto t0g = clock();
+		Mat tmp, nextFrameColored, nextFrame;
+		capture >> tmp;
+		if (tmp.empty())
+			break;
+		nextFrameColored = tmp.clone();
+		cvtColor(tmp, nextFrame, COLOR_BGR2GRAY);
 
-        std::vector<KeyPoint> keypoint_1, keypoint_2;
-        Mat descriptors_1, descriptors_2;
+		std::vector<KeyPoint> keypoint_1, keypoint_2;
+		Mat descriptors_1, descriptors_2;
 
-        auto t0d = clock();
-        //detector->detectAndCompute(previousFrame, cv::noArray(), keypoint_1, descriptors_1);
-        detector->detectAndCompute(nextFrame, cv::noArray(), keypoint_2, descriptors_2);
-        cout << "detect: " << (clock() - t0d)/(double)CLOCKS_PER_SEC << endl;
+		auto t0d = clock();
+		// detector->detectAndCompute(previousFrame, cv::noArray(), keypoint_1, descriptors_1);
+		detector->detectAndCompute(nextFrame, cv::noArray(), keypoint_2, descriptors_2);
+		cout << "detect: " << (clock() - t0d) / (double)CLOCKS_PER_SEC << endl;
 
-        auto keyboard = waitKey(30);
-        if (keyboard == 'q' || keyboard == 27)
-            break;
-        if (keyboard == 'p') {
-            waitKey(-1);
-        } 
+		auto keyboard = waitKey(30);
+		if (keyboard == 'q' || keyboard == 27)
+			break;
+		if (keyboard == 'p')
+			waitKey(-1);
 
-        if (keyboard == '.')
-            pausedFrame = true;
+		if (keyboard == '.')
+			pausedFrame = true;
 
-        //BFMatcher matcher(NORM_L2);
-        //auto matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-        if (!keypoint_2.empty()) {
-            //vector<DMatch> matches;
-           // matcher->match(descriptors_1, descriptors_2, matches);
-            
-            //Mat matchesFrame;
-            //drawMatches(previousFrame, keypoint_1, nextFrame, keypoint_2, matches, matchesFrame);
+		// BFMatcher matcher(NORM_L2);
+		// auto matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+		if (!keypoint_2.empty()) {
+			// vector<DMatch> matches;
+			// matcher->match(descriptors_1, descriptors_2, matches);
 
-            // imshow("SURF", matchesFrame);    
+			// Mat matchesFrame;
+			// drawMatches(previousFrame, keypoint_1, nextFrame, keypoint_2, matches, matchesFrame);
 
-            vector<Pixel> seeds;
-            // for (auto match : matches) {
-            //     auto point = keypoint_2[match.trainIdx].pt;
-            //     seeds.push_back(Pixel((uint32_t)point.y, (uint32_t)point.x));
-            // }
-            for (auto point : keypoint_2) {
-                seeds.push_back(Pixel((uint32_t)point.pt.y, (uint32_t)point.pt.x));
-            }
+			// imshow("SURF", matchesFrame);
 
-            if (!seeds.empty()) {
-                auto t0 = clock();
-                auto paths = livewire(nextFrame, seeds);
-                cout << "livewire: " << (clock() - t0)/(double)CLOCKS_PER_SEC << endl;
-                // for_each (
-                //     execution::par,
-                //     paths.begin(),
-                //     paths.end(),
-                //     [&](auto&& path) {
-                //         cout << path.size() << endl;
-                //         // for (auto &p : path) {
-                //         //     cout << p.y << "," << p.x << endl;
-                //         //     //circle(nextFrameColored, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
-                //         // }
-                //     }
-                // );
+			vector<Pixel> seeds;
+			// for (auto match : matches) {
+			//     auto point = keypoint_2[match.trainIdx].pt;
+			//     seeds.push_back(Pixel((uint32_t)point.y, (uint32_t)point.x));
+			// }
+			for (auto point : keypoint_2) {
+				seeds.push_back(Pixel((uint32_t)point.pt.y, (uint32_t)point.pt.x));
+			}
 
-                auto t0c = clock();
-                int i = 0;
-                #pragma omp parallel for
-                for (const auto &path : paths) {
-                    if (path.size() > pathThreshold) {
-                        auto color = colors[i++ % colors.size()];
-						#pragma omp parallel for
-                        for (const auto p : path) {
-                            nextFrameColored.at<Vec3b>(Point(p.y, p.x)) = color;
-                        }
-                    }
-                }
-                cout << "draw path: " << (clock() - t0c)/(double) CLOCKS_PER_SEC << endl;
-            }
-        }
+			if (!seeds.empty()) {
+				auto t0 = clock();
+				auto paths = livewire(nextFrame, seeds);
+				cout << "livewire: " << (clock() - t0) / (double)CLOCKS_PER_SEC << endl;
+				// for_each (
+				//     execution::par,
+				//     paths.begin(),
+				//     paths.end(),
+				//     [&](auto&& path) {
+				//         cout << path.size() << endl;
+				//         // for (auto &p : path) {
+				//         //     cout << p.y << "," << p.x << endl;
+				//         //     //circle(nextFrameColored, Point(p.y, p.x), 1, Scalar(255, 0, 255), 1);
+				//         // }
+				//     }
+				// );
 
-        imshow("Image", nextFrameColored);
-        writer.write(nextFrameColored);
+				auto t0c = clock();
+				int i = 0;
+#pragma omp parallel for
+				for (const auto &path : paths) {
+					if (path.size() > pathThreshold) {
+						auto color = colors[i++ % colors.size()];
+#pragma omp parallel for
+						for (const auto p : path) {
+							nextFrameColored.at<Vec3b>(Point(p.y, p.x)) = color;
+						}
+					}
+				}
+				cout << "draw path: " << (clock() - t0c) / (double)CLOCKS_PER_SEC << endl;
+			}
+		}
 
-        previousFrame = nextFrame.clone();
-        if (pausedFrame) {
-            keyboard = waitKey(-1);
-            pausedFrame = (keyboard == '.');
-        }
+		imshow("Image", nextFrameColored);
+		writer.write(nextFrameColored);
 
-        cout << "iteration: " << (clock() - t0g)/(double) CLOCKS_PER_SEC << endl;
-    }
+		previousFrame = nextFrame.clone();
+		if (pausedFrame) {
+			keyboard = waitKey(-1);
+			pausedFrame = (keyboard == '.');
+		}
 
-    writer.release();
-    capture.release();
-    destroyAllWindows();
+		cout << "iteration: " << (clock() - t0g) / (double)CLOCKS_PER_SEC << endl;
+	}
+
+	writer.release();
+	capture.release();
+	destroyAllWindows();
 }
