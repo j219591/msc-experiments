@@ -4,6 +4,19 @@
 
 using namespace std;
 
+struct Node {
+    int x, y;
+    Node(int _x, int _y): x(_x), y(_y) {}
+};
+
+bool operator<(const Node &lhs, const Node &rhs) {
+    return (lhs.x < rhs.x || lhs.y < rhs.y);
+}
+
+bool operator>(const Node &lhs, const Node &rhs) {
+    return (lhs.x > rhs.x || lhs.y > rhs.y);
+}
+
 int main() {
     Graph<int, int> g{};
 
@@ -18,6 +31,14 @@ int main() {
 
     cout << "Dijkstra distance: " << dijkstra(g, 0, 4) << endl;
 
+    Graph<Node, int> h{};
+
+    h.add_edge(Node{0,0}, Node{0,1}, 2);
+    h.add_edge(Node{0,1}, Node{0,2}, 3);
+    h.add_edge(Node{0,2}, Node{0,3}, 1);
+    h.add_edge(Node{0,0}, Node{0,2}, 5);
+
+    cout << "Dijkstra distance Node: " << dijkstra(h, Node{0,0}, Node{0,3}) << endl;
 
     Graph<pair<int, int>, int> f{};
 
@@ -28,7 +49,7 @@ int main() {
 
     //cout << f.to_string() << endl;
 
-    //cout << "Dijkstra distance: " << dijkstra(f, {0,0}, {0,3}) << endl;
+    cout << "Dijkstra distance: " << dijkstra(f, {0,0}, {0,3}) << endl;
 
     return 0;
 }

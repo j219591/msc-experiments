@@ -36,5 +36,6 @@ public:
         for (auto &i : adj) {
             cout << i << endl;
         }
+		return "";
     }
 };
